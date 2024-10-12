@@ -51,6 +51,7 @@ var CustomReportSlack = /** @class */ (function () {
         this.passedTest = 0;
         this.failedTest = 0;
         this.flakyTest = 0;
+        this.testDuration = '0';
         this.slackUrl = (_a = options.webhookUrl) !== null && _a !== void 0 ? _a : null;
         this.projectName = options.projectName;
         this.buildUrl = (_b = options.buildUrl) !== null && _b !== void 0 ? _b : null;
@@ -93,11 +94,16 @@ var CustomReportSlack = /** @class */ (function () {
             });
         });
     };
-    CustomReportSlack.prototype.onEnd = function () {
+    CustomReportSlack.prototype.onEnd = function (result) {
         return __awaiter(this, void 0, void 0, function () {
+            var durationInSec, durationInMins;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.sendReportToSlack()];
+                    case 0:
+                        durationInSec = Number((result.duration * 0.001).toFixed(2));
+                        durationInMins = "".concat(Math.floor(durationInSec / 60).toFixed(0), "m ").concat((durationInSec % 60).toFixed(2), "s");
+                        this.testDuration = durationInMins;
+                        return [4 /*yield*/, this.sendReportToSlack()];
                     case 1:
                         _a.sent();
                         return [2 /*return*/];
@@ -168,6 +174,16 @@ var CustomReportSlack = /** @class */ (function () {
                                         {
                                             "type": "plain_text",
                                             "text": ":x: ".concat(this.failedTest, " failed"),
+                                            "emoji": true
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "context",
+                                    "elements": [
+                                        {
+                                            "type": "plain_text",
+                                            "text": ":clock1: ".concat(this.testDuration),
                                             "emoji": true
                                         }
                                     ]
