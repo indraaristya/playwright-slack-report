@@ -42,12 +42,18 @@ var CustomReportSlack = /** @class */ (function () {
     // private flakyTest: number = 0;
     function CustomReportSlack(options) {
         if (options === void 0) { options = {
-            webhookUrl: null
+            projectName: '',
+            webhookUrl: null,
+            buildUrl: null,
+            triggerBy: null
         }; }
-        var _a;
+        var _a, _b, _c;
         this.passedTest = 0;
         this.failedTest = 0;
         this.slackUrl = (_a = options.webhookUrl) !== null && _a !== void 0 ? _a : null;
+        this.projectName = options.projectName;
+        this.buildUrl = (_b = options.buildUrl) !== null && _b !== void 0 ? _b : null;
+        this.triggerBy = (_c = options.triggerBy) !== null && _c !== void 0 ? _c : null;
     }
     CustomReportSlack.prototype.onBegin = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -90,17 +96,45 @@ var CustomReportSlack = /** @class */ (function () {
     };
     CustomReportSlack.prototype.sendReportToSlack = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var bodyBlocks, error_1;
+            var testBuildUrl, userWhoTrigger, bodyBlocks, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        testBuildUrl = {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": "Build number #1"
+                            },
+                            "accessory": {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Report",
+                                    "emoji": true
+                                },
+                                "value": "go_to_report",
+                                "url": this.buildUrl,
+                                "action_id": "button-action"
+                            }
+                        };
+                        userWhoTrigger = {
+                            "type": "context",
+                            "elements": [
+                                {
+                                    "type": "plain_text",
+                                    "text": "Run by: ".concat(this.triggerBy),
+                                    "emoji": false
+                                }
+                            ]
+                        };
                         bodyBlocks = {
                             "blocks": [
                                 {
                                     "type": "header",
                                     "text": {
                                         "type": "plain_text",
-                                        "text": "Testing Result",
+                                        "text": "".concat(this.projectName, " Testing Result"),
                                         "emoji": true
                                     }
                                 },
@@ -112,69 +146,27 @@ var CustomReportSlack = /** @class */ (function () {
                                     "fields": [
                                         {
                                             "type": "plain_text",
-                                            "text": ":white_check_mark: 3 passed",
+                                            "text": ":white_check_mark: ".concat(this.passedTest, " passed"),
                                             "emoji": true
                                         },
                                         {
                                             "type": "plain_text",
-                                            "text": ":bangbang: 2 flaky",
+                                            "text": ":bangbang: 0 flaky",
                                             "emoji": true
                                         },
                                         {
                                             "type": "plain_text",
-                                            "text": ":x: 1 failed",
+                                            "text": ":x: ".concat(this.failedTest, " failed"),
                                             "emoji": true
-                                        }
-                                    ]
-                                },
-                                {
-                                    "type": "section",
-                                    "text": {
-                                        "type": "mrkdwn",
-                                        "text": "Build number #1"
-                                    },
-                                    "accessory": {
-                                        "type": "button",
-                                        "text": {
-                                            "type": "plain_text",
-                                            "text": "Report",
-                                            "emoji": true
-                                        },
-                                        "value": "go_to_report",
-                                        "url": "https://google.com",
-                                        "action_id": "button-action"
-                                    }
-                                },
-                                {
-                                    "type": "section",
-                                    "text": {
-                                        "type": "mrkdwn",
-                                        "text": "This is a section block with a button."
-                                    },
-                                    "accessory": {
-                                        "type": "button",
-                                        "text": {
-                                            "type": "plain_text",
-                                            "text": "Job Build",
-                                            "emoji": true
-                                        },
-                                        "value": "go_to_build",
-                                        "url": "https://google.com",
-                                        "action_id": "button-action"
-                                    }
-                                },
-                                {
-                                    "type": "context",
-                                    "elements": [
-                                        {
-                                            "type": "plain_text",
-                                            "text": "Run by: user",
-                                            "emoji": false
                                         }
                                     ]
                                 }
                             ]
                         };
+                        if (this.buildUrl)
+                            bodyBlocks['blocks'].push(testBuildUrl);
+                        if (this.triggerBy)
+                            bodyBlocks['blocks'].push(userWhoTrigger);
                         if (!this.slackUrl) return [3 /*break*/, 4];
                         _a.label = 1;
                     case 1:
