@@ -1,1 +1,3 @@
-console.log("Report handler here")
+export {
+  CustomReportSlack as default
+} from './reporter';

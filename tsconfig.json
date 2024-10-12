@@ -1,15 +1,31 @@
 {
   "compilerOptions": {
-    "module": "ES6",
-    "target": "ES6",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
+    "lib": ["es2020"],
+    "module": "commonjs",
+    "target": "es2020",
+
+    "allowJs": true,
+    "noEmit": true,
+    "noEmitOnError": true,
     "skipLibCheck": true,
-    "types": [
-      "node"
-    ],
-    "outDir": "./dist/",
+    "declaration": true,
+    "strict": true,
+
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+
     "moduleResolution": "node",
-  }
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true
+  },
+  "include": ["**/*.ts", "**/*.js"]
 }
