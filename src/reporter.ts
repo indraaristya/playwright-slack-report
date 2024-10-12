@@ -1,4 +1,4 @@
-import { Reporter, TestCase, TestResult } from "@playwright/test/reporter";
+import { Reporter, TestCase, TestResult, FullResult } from "@playwright/test/reporter";
 import axios from 'axios'
 
 interface CustomOptions {
@@ -19,6 +19,7 @@ export class CustomReportSlack implements Reporter {
   private passedTest: number = 0;
   private failedTest: number = 0;
   private flakyTest: number = 0;
+  private testDuration: string = '0';
 
   constructor(options: CustomOptions = {
     projectName: '',
@@ -58,7 +59,10 @@ export class CustomReportSlack implements Reporter {
     }
   }
 
-  async onEnd() {
+  async onEnd(result: FullResult) {
+    const durationInSec = Number((result.duration * 0.001).toFixed(2))
+    const durationInMins = `${Math.floor(durationInSec/60).toFixed(0)}m ${(durationInSec % 60).toFixed(2)}s`
+    this.testDuration = durationInMins;
     await this.sendReportToSlack();
   }
 
@@ -122,6 +126,16 @@ export class CustomReportSlack implements Reporter {
             {
               "type": "plain_text",
               "text": `:x: ${this.failedTest} failed`,
+              "emoji": true
+            }
+          ]
+        },
+        {
+          "type": "context",
+          "elements": [
+            {
+              "type": "plain_text",
+              "text": `:clock1: ${this.testDuration}`,
               "emoji": true
             }
           ]
