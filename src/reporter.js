@@ -39,21 +39,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CustomReportSlack = void 0;
 var axios_1 = require("axios");
 var CustomReportSlack = /** @class */ (function () {
-    // private flakyTest: number = 0;
     function CustomReportSlack(options) {
         if (options === void 0) { options = {
             projectName: '',
             webhookUrl: null,
             buildUrl: null,
+            buildNumber: '0',
             triggerBy: null
         }; }
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         this.passedTest = 0;
         this.failedTest = 0;
+        this.flakyTest = 0;
         this.slackUrl = (_a = options.webhookUrl) !== null && _a !== void 0 ? _a : null;
         this.projectName = options.projectName;
         this.buildUrl = (_b = options.buildUrl) !== null && _b !== void 0 ? _b : null;
         this.triggerBy = (_c = options.triggerBy) !== null && _c !== void 0 ? _c : null;
+        this.buildNumber = (_d = options.buildNumber) !== null && _d !== void 0 ? _d : '0';
     }
     CustomReportSlack.prototype.onBegin = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -70,13 +72,22 @@ var CustomReportSlack = /** @class */ (function () {
             var testMaxRetry;
             return __generator(this, function (_a) {
                 testMaxRetry = test.retries;
-                if ((testMaxRetry > 0 && result.retry == testMaxRetry) || (testMaxRetry == 0)) {
+                if (testMaxRetry == 0 || (testMaxRetry > 0 && result.retry == 0 && result.status == 'passed')) {
+                    console.log("".concat(test.title, " - ").concat(result.status));
                     if (result.status == 'passed') {
                         this.passedTest += 1;
                     }
                     else {
                         this.failedTest += 1;
                     }
+                }
+                else if (testMaxRetry > 0 && result.retry > 0 && result.status == 'passed') {
+                    console.log("".concat(test.title, " - ").concat(result.status));
+                    this.flakyTest += 1;
+                }
+                else if (testMaxRetry > 0 && result.retry == testMaxRetry && result.status == 'failed') {
+                    console.log("".concat(test.title, " - ").concat(result.status));
+                    this.failedTest += 1;
                 }
                 return [2 /*return*/];
             });
@@ -104,7 +115,7 @@ var CustomReportSlack = /** @class */ (function () {
                             "type": "section",
                             "text": {
                                 "type": "mrkdwn",
-                                "text": "Build number #1"
+                                "text": "Build number #".concat(this.buildNumber)
                             },
                             "accessory": {
                                 "type": "button",
@@ -151,7 +162,7 @@ var CustomReportSlack = /** @class */ (function () {
                                         },
                                         {
                                             "type": "plain_text",
-                                            "text": ":bangbang: 0 flaky",
+                                            "text": ":bangbang: ".concat(this.flakyTest, " flaky"),
                                             "emoji": true
                                         },
                                         {

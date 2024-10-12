@@ -5,6 +5,7 @@ interface CustomOptions {
   projectName: string | "";
   webhookUrl: string | null;
   buildUrl: string | null;
+  buildNumber: string | '0';
   triggerBy: string | null;
 }
 
@@ -12,22 +13,25 @@ export class CustomReportSlack implements Reporter {
   private projectName: string | "";
   private slackUrl: string | null;
   private buildUrl: string | null;
+  private buildNumber: string | '0';
   private triggerBy: string | null;
 
   private passedTest: number = 0;
   private failedTest: number = 0;
-  // private flakyTest: number = 0;
+  private flakyTest: number = 0;
 
   constructor(options: CustomOptions = {
     projectName: '',
     webhookUrl: null,
     buildUrl: null,
+    buildNumber: '0',
     triggerBy: null
   }) {
     this.slackUrl = options.webhookUrl ?? null
     this.projectName = options.projectName
     this.buildUrl = options.buildUrl ?? null
     this.triggerBy = options.triggerBy ?? null
+    this.buildNumber = options.buildNumber ?? '0'
   }
 
   async onBegin() {
@@ -38,12 +42,19 @@ export class CustomReportSlack implements Reporter {
 
   async onTestEnd(test: TestCase, result: TestResult) {
     const testMaxRetry = test.retries;
-    if ((testMaxRetry > 0 && result.retry == testMaxRetry) || (testMaxRetry == 0)) {
+    if (testMaxRetry == 0 || (testMaxRetry > 0 && result.retry == 0 && result.status == 'passed')) {
+      console.log(`${test.title} - ${result.status}`)
       if (result.status == 'passed') {
         this.passedTest += 1
       } else {
         this.failedTest += 1
       }
+    } else if (testMaxRetry > 0 && result.retry > 0 && result.status == 'passed') {
+      console.log(`${test.title} - ${result.status}`)
+      this.flakyTest += 1
+    } else if (testMaxRetry > 0 && result.retry == testMaxRetry && result.status == 'failed') {
+      console.log(`${test.title} - ${result.status}`)
+      this.failedTest += 1
     }
   }
 
@@ -56,7 +67,7 @@ export class CustomReportSlack implements Reporter {
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "Build number #1"
+        "text": `Build number #${this.buildNumber}`
       },
       "accessory": {
         "type": "button",
@@ -105,7 +116,7 @@ export class CustomReportSlack implements Reporter {
             },
             {
               "type": "plain_text",
-              "text": ":bangbang: 0 flaky",
+              "text": `:bangbang: ${this.flakyTest} flaky`,
               "emoji": true
             },
             {
